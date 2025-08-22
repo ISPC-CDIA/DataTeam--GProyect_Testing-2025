@@ -1,1 +1,1 @@
-# DataTeam---Gesti-n-de-Proyecto-Testing-2025
+# DataTeam---Gestión-de-Proyecto-Testing-2025
