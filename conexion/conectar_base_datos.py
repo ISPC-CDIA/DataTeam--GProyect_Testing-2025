@@ -6,5 +6,5 @@ def conectar_base_datos():
         host="localhost",
         user="root",
         password="1234",
-        database="Turnero"
+        database="turnero"
     )
