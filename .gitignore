@@ -1,0 +1,30 @@
+# Ignorar la carpeta de configuración de IntelliJ IDEA de las posibles rutas donde se podría encontrar
+.idea/
+APLICACION/.idea/
+BD/.idea/
+Carpeta-Temporal/0.1v/.idea/
+Carpeta-Temporal/0.2v/.idea/
+Carpeta-Temporal/0.3v/.idea/
+Carpeta-Temporal/0.4v/.idea/
+Carpeta-Temporal/0.5v/.idea/
+EVIDENCIA2/.idea/
+
+# Ignorar la carpeta de configuración de Visual Studio de las posibles rutas donde se podría encontrar
+.vs/
+APLICACION/.vs/
+BD/.vs/
+Carpeta-Temporal/0.1v/.vs/
+Carpeta-Temporal/0.2v/.vs/
+Carpeta-Temporal/0.3v/.vs/
+Carpeta-Temporal/0.4v/.vs/
+Carpeta-Temporal/0.5v/.vs/
+EVIDENCIA2/.vs/
+
+# Ignorar la carpeta temporal de ejecución de archivos Python
+__pycache__/
+APLICACION/__pycache__/
+Carpeta-Temporal/0.1v/__pycache__/
+Carpeta-Temporal/0.2v/__pycache__/
+Carpeta-Temporal/0.3v/__pycache__/
+Carpeta-Temporal/0.4v/__pycache__/
+Carpeta-Temporal/0.5v/__pycache__/
