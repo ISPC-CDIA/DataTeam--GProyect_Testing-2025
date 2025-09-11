@@ -1,5 +1,5 @@
 # crear_usuario.py
-from core.conectar_base_datos import conectar_base_datos
+from conectar_base_datos import conectar_base_datos
 from tabulate import tabulate
 
 def _seleccionar_rol(cur):

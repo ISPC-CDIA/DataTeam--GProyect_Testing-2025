@@ -37,7 +37,7 @@ def menu_inicio():
             print('2. Consultar Turno')
             print('3. Actualizar Turno')
             print('4. Eliminar Turno')
-            print('5. Crear Usuario')   # NUEVO
+            print('5. Crear Usuario')   
             print('0. Salir')
             opciones_validas = {0,1,2,3,4,5}
         elif user["es_medico"]:
