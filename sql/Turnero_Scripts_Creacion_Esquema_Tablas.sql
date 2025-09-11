@@ -52,19 +52,18 @@ CREATE TABLE IF NOT EXISTS `Turnero`.`Acceso` (
 -- -----------------------------------------------------
 -- Table `Turnero`.`Paciente`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `Turnero`.`Paciente` (
-  `id_paciente` INT NOT NULL AUTO_INCREMENT,
-  `Nombre` VARCHAR(45) NOT NULL,
-  `Apellido` VARCHAR(45) NOT NULL,
-  `DNI` INT NOT NULL,
-  `usuario_id` INT NULL,
-  PRIMARY KEY (`id_paciente`),
-  UNIQUE INDEX `id_paciente_UNIQUE` (`id_paciente` ASC) VISIBLE,
-  UNIQUE INDEX `uq_paciente_usuario` (`usuario_id` ASC) VISIBLE,
-  CONSTRAINT `fk_paciente_usuario`
-    FOREIGN KEY (`usuario_id`) REFERENCES `Turnero`.`Usuario`(`id_usuario`)
-    ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB;
+CREATE TABLE Paciente (
+    id_paciente INT AUTO_INCREMENT PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL,
+    Apellido VARCHAR(100) NOT NULL,
+    DNI BIGINT NOT NULL,
+    usuario_id INT NULL,
+    -- Si usás una tabla Usuario, agregá la FK:
+    CONSTRAINT fk_paciente_usuario
+        FOREIGN KEY (usuario_id) REFERENCES Usuario(id_usuario)
+        ON UPDATE CASCADE ON DELETE SET NULL,
+    UNIQUE KEY uq_paciente_dni (DNI)  --  Índice único para evitar duplicados
+);
 
 -- -----------------------------------------------------
 -- Table `Turnero`.`Departamento`

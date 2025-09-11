@@ -5,66 +5,114 @@ def crear_turno():
     conn = conectar_base_datos()
     cursor = conn.cursor()
 
-    print('Para CREAR un turno, seleccione un departamento médico:')
+    # 1) Elegir DEPARTAMENTO
+    print('Para CREAR un turno, seleccione un DEPARTAMENTO médico:\n')
 
-    #Recupera de la DB la tabla de especialidades.
-    cursor.execute('SELECT id_especialidad, Nombre FROM Especialidad ORDER BY Nombre ASC;')
-    especialidades = cursor.fetchall()
+    cursor.execute("""
+        SELECT d.id_departamento, d.nombre
+        FROM Departamento d
+        ORDER BY d.nombre ASC;
+    """)
+    departamentos = cursor.fetchall()
 
-    #Si hay especialidades cargadas en la tabla, las devuelve por pantalla
-    #para eso usamos TABULATE, nos deja mas presentable la interfaz.
-    if especialidades:
-        headers = ["ID", "Especialidad"]
-        tabla_especialidades = [[especialidad[0], especialidad[1]] for especialidad in especialidades]
-        print(tabulate(tabla_especialidades, headers=headers, tablefmt="grid"))
-    else:
-        print("No hay especialidades disponibles.")
+    if not departamentos:
+        print("No hay departamentos disponibles.")
+        conn.close()
+        return
 
-    #Validamos el input del usuario -> si la opción NUMÉRICA coincide con algun valor del 'largo' de elementos de especialidades
-    #almacena la opción para proseguir. Caso contrario, devuelve una alerta.
+    tabla_deptos = [[i+1, d[0], d[1]] for i, d in enumerate(departamentos)]
+    print(tabulate(tabla_deptos, headers=["N°", "ID", "Departamento"], tablefmt="grid"))
+
+    # Selección segura por N°
+    id_departamento = None
+    nombre_departamento = None
     while True:
         try:
-            f = int(input())
-            if 1 <= f <= len(especialidades):
-                user_turn = especialidades[f-1]
+            opcion = int(input("Ingrese el N° de departamento: ").strip())
+            if 1 <= opcion <= len(departamentos):
+                id_departamento = departamentos[opcion-1][0]
+                nombre_departamento = departamentos[opcion-1][1]
                 break
             else:
                 print("Por favor, ingrese un número válido.")
         except ValueError:
             print("Por favor, ingrese un número.")
 
+    # 2) Listar ESPECIALIDADES del departamento elegido (sin duplicados)
+    print(f"\nDepartamento elegido: {nombre_departamento}")
+    print("Ahora seleccione una ESPECIALIDAD disponible en este departamento:\n")
 
-    #Habiendo almacenado la opción de Especialidad -> Almacena los datos del paciente
-    user_m = input('Ingrese su Nombre:')
-    user_a = input('Ingrese su Apellido: ')
-    user_dni = input('Ingrese su DNI: ')
+    # Si NO tenés FK directa en Especialidad a Departamento, usamos DISTINCT + JOIN vía Médicos
+    cursor.execute("""
+        SELECT DISTINCT e.id_especialidad, e.nombre
+        FROM Especialidad e
+        JOIN Medico_Especialidad me ON me.id_especialidad = e.id_especialidad
+        JOIN Medico m ON m.id_medico = me.id_medico
+        WHERE m.Departamento_id_departamento = %s
+        ORDER BY e.nombre ASC;
+    """, (id_departamento,))
+    especialidades = cursor.fetchall()
 
-    # Comprobación -> el Paciente existe en el sistema?
-    # Solicitamos a la DB que busque el DNI ingresado
-    cursor.execute('SELECT DNI FROM Paciente WHERE DNI = %s', (user_dni,))
-    t = cursor.fetchone()
+    if not especialidades:
+        print("No hay especialidades para ese departamento.")
+        conn.close()
+        return
 
-    # Si el paciente NO se encuntra en la DB -> Agrega el paciente
-    #
-    # Siguiente paso (indistinto a la preexistencia del paciente) es recuperar el ID de la tabla para -> cargar un nuevo turno con ese ID
-    #en la tabla de turnos
-    if not t:
-        cursor.execute('INSERT INTO Paciente (Nombre, Apellido, DNI) VALUES (%s, %s, %s);', (user_m, user_a, user_dni))
+    tabla_esps = [[i+1, e[0], e[1]] for i, e in enumerate(especialidades)]
+    print(tabulate(tabla_esps, headers=["N°", "ID", "Especialidad"], tablefmt="grid"))
+
+    id_especialidad = None
+    nombre_especialidad = None
+    while True:
+        try:
+            opcion = int(input("Ingrese el N° de especialidad: ").strip())
+            if 1 <= opcion <= len(especialidades):
+                id_especialidad = especialidades[opcion-1][0]
+                nombre_especialidad = especialidades[opcion-1][1]
+                break
+            else:
+                print("Por favor, ingrese un número válido.")
+        except ValueError:
+            print("Por favor, ingrese un número.")
+
+    # 3) Datos del paciente
+    print()
+    user_m = input('Ingrese su Nombre: ').strip()
+    user_a = input('Ingrese su Apellido: ').strip()
+    user_dni = input('Ingrese su DNI: ').strip()
+
+    # 4) Upsert paciente (si no existe, lo crea)
+    cursor.execute('SELECT id_paciente FROM Paciente WHERE DNI = %s;', (user_dni,))
+    row = cursor.fetchone()
+
+    if row is None:
+        cursor.execute(
+            'INSERT INTO Paciente (Nombre, Apellido, DNI) VALUES (%s, %s, %s);',
+            (user_m, user_a, user_dni)
+        )
+        # Reobtener id_paciente
         cursor.execute('SELECT id_paciente FROM Paciente WHERE DNI = %s;', (user_dni,))
         tdni = cursor.fetchone()[0]
-        cursor.execute('INSERT INTO Turno (fecha, hora, Paciente_id_paciente, Especialidad_id_especialidad) VALUES (CURDATE(), CURTIME(), %s, %s);', (tdni, f))
     else:
-        cursor.execute('SELECT id_paciente FROM Paciente WHERE DNI = %s', (user_dni,))
-        tdni = cursor.fetchone()[0]
-        cursor.execute('INSERT INTO Turno (fecha, hora, Paciente_id_paciente, Especialidad_id_especialidad) VALUES (CURDATE(), CURTIME(), %s, %s);', (tdni, f))
+        tdni = row[0]
 
+    # 5) Crear turno (usa el ID REAL de especialidad, no el índice)
+    cursor.execute("""
+        INSERT INTO Turno (fecha, hora, Paciente_id_paciente, Especialidad_id_especialidad)
+        VALUES (CURDATE(), CURTIME(), %s, %s);
+    """, (tdni, id_especialidad))
 
-    # Mensaje final -> avisa la especialidad, el código del turno (ID) que se va a utilizar para otros tŕamites en el sistema
-    print(f'Usted seleccionó {user_turn}.')
+    # 6) Confirmación
     cursor.execute('SELECT MAX(id_turno) FROM Turno;')
     c = cursor.fetchone()
-    print(f'El código de su turno es: {c[0]}.') #Borré la coma, chicos :D
-    print('Recibirá un Email con la confirmación del horario.') # ----> OBJETIVO! poder implementar esta funcionalidad 
+    id_turno = c[0] if c else None
 
     conn.commit()
     conn.close()
+
+    print(f"\n✅ Turno creado correctamente.")
+    print(f"Departamento: {nombre_departamento}")
+    print(f"Especialidad: {nombre_especialidad}")
+    if id_turno is not None:
+        print(f"Código de turno: {id_turno}")
+    print('Recibirá un Email con la confirmación del horario (a implementar).')
