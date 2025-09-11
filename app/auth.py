@@ -1,9 +1,7 @@
-# auth.py
+# auth.py (simple, sin bcrypt)
 from mysql import connector
-from passlib.hash import bcrypt
 
 def get_conn():
-    # Usamos tu misma conexión que en conectar_base_datos.py
     return connector.connect(
         host="localhost",
         user="root",
@@ -11,22 +9,9 @@ def get_conn():
         database="Turnero"
     )
 
-def set_password(username: str, plain_password: str) -> bool:
-    """Setea/actualiza el hash de password para un usuario."""
-    pwd_hash = bcrypt.hash(plain_password)
-    conn = get_conn()
-    cur = conn.cursor()
-    cur.execute("UPDATE Usuario SET password_hash=%s WHERE username=%s", (pwd_hash, username))
-    conn.commit()
-    ok = cur.rowcount > 0
-    cur.close()
-    conn.close()
-    return ok
-
 def login(username: str, plain_password: str):
     """
-    Devuelve un dict con info del usuario si login ok:
-    {id_usuario, username, rol, dni, es_admin, es_empleado, es_medico, es_paciente}
+    Devuelve dict con info del usuario si la contraseña (texto plano) coincide.
     """
     conn = get_conn()
     cur = conn.cursor(dictionary=True)
@@ -43,10 +28,11 @@ def login(username: str, plain_password: str):
 
     if not row:
         return None
-    if not bcrypt.verify(plain_password, row["password_hash"]):
+    # Comparación directa en texto plano
+    if plain_password != row["password_hash"]:
         return None
 
-    rol = row["rol"].lower() if row["rol"] else ""
+    rol = (row["rol"] or "").lower()
     return {
         "id_usuario": row["id_usuario"],
         "username": row["username"],
@@ -57,3 +43,16 @@ def login(username: str, plain_password: str):
         "es_medico": rol == "medico",
         "es_paciente": rol == "paciente",
     }
+
+def set_password_plain(username: str, new_password: str) -> bool:
+    """
+    (Opcional) Cambia la contraseña en texto plano desde el código.
+    """
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("UPDATE Usuario SET password_hash=%s WHERE username=%s",
+                (new_password, username))
+    conn.commit()
+    ok = cur.rowcount > 0
+    cur.close(); conn.close()
+    return ok

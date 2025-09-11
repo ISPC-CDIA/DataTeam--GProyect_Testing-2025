@@ -4,18 +4,21 @@ USE Turnero;
 -- Roles base
 INSERT IGNORE INTO Rol (nombre) VALUES ('admin'), ('empleado'), ('medico'), ('paciente');
 
--- Usuarios de ejemplo (password_hash TEMP; luego se reemplaza por hash real con Python)
+-- Usuarios de ejemplo 
 INSERT INTO Usuario (username, email, password_hash, dni, id_rol)
-SELECT 'admin', 'admin@demo.local', 'TEMP', NULL, r.id_rol FROM Rol r WHERE r.nombre='admin'
-ON DUPLICATE KEY UPDATE email=VALUES(email);
+SELECT 'admin', 'admin@demo.local', 'admin123', NULL, r.id_rol
+FROM Rol r WHERE r.nombre='admin'
+ON DUPLICATE KEY UPDATE email=VALUES(email), password_hash='admin123';
 
 INSERT INTO Usuario (username, email, password_hash, dni, id_rol)
-SELECT 'medico_mario', 'mario.sanchez@demo.local', 'TEMP', NULL, r.id_rol FROM Rol r WHERE r.nombre='medico'
-ON DUPLICATE KEY UPDATE email=VALUES(email);
+SELECT 'medico_mario', 'mario.sanchez@demo.local', 'medico123', NULL, r.id_rol
+FROM Rol r WHERE r.nombre='medico'
+ON DUPLICATE KEY UPDATE email=VALUES(email), password_hash='medico123';
 
 INSERT INTO Usuario (username, email, password_hash, dni, id_rol)
-SELECT 'paciente_abdala', 'mario.abdala@demo.local', 'TEMP', 28740858, r.id_rol FROM Rol r WHERE r.nombre='paciente'
-ON DUPLICATE KEY UPDATE email=VALUES(email);
+SELECT 'paciente_abdala', 'mario.abdala@demo.local', 'paciente123', 28740858, r.id_rol
+FROM Rol r WHERE r.nombre='paciente'
+ON DUPLICATE KEY UPDATE email=VALUES(email), password_hash='paciente123';
 
 -- Departamentos
 INSERT INTO Turnero.Departamento (nombre) VALUES ('Medicina'); -- 1

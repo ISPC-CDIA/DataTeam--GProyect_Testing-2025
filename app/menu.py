@@ -1,8 +1,10 @@
+# menu.py
 from crear_turno import crear_turno
 from consultar_turno import consultar_turno
 from eliminar_turno import eliminar_turno
 from actualizar_turno import actualizar_turno
 from consultar_turnos_medico import consultar_turnos_medico
+from crear_usuario import crear_usuario  
 
 from auth import login
 
@@ -35,9 +37,9 @@ def menu_inicio():
             print('2. Consultar Turno')
             print('3. Actualizar Turno')
             print('4. Eliminar Turno')
-            # print('5. Opciones avanzadas')  # si existe
+            print('5. Crear Usuario')   # NUEVO
             print('0. Salir')
-            opciones_validas = {0,1,2,3,4}
+            opciones_validas = {0,1,2,3,4,5}
         elif user["es_medico"]:
             print('1. Consultar mis turnos (por especialidad)')
             print('0. Salir')
@@ -64,15 +66,18 @@ def menu_inicio():
                 print('Hasta luego, gracias por confiar en InstaTurno.')
                 break
             elif opt == 1:
-                crear_turno()         # ya lo tenés:contentReference[oaicite:7]{index=7}
+                crear_turno()
             elif opt == 2:
-                consultar_turno()     # ya lo tenés:contentReference[oaicite:8]{index=8}
+                consultar_turno()
             elif opt == 3:
-                actualizar_turno()    # ya lo tenés:contentReference[oaicite:9]{index=9}
+                actualizar_turno()
             elif opt == 4:
-                eliminar_turno()      # ya lo tenés:contentReference[oaicite:10]{index=10}
-            # elif opt == 5:
-            #     opciones_avanzadas()
+                eliminar_turno()
+            elif opt == 5:
+                if user["es_admin"]:
+                    crear_usuario()
+                else:
+                    print("Solo un admin puede crear usuarios.")
         elif user["es_medico"]:
             if opt == 0:
                 print('Hasta luego, gracias por confiar en InstaTurno.')
@@ -84,9 +89,9 @@ def menu_inicio():
                 print('Hasta luego, gracias por confiar en InstaTurno.')
                 break
             elif opt == 1:
-                # Reutilizamos tu flujo "Consultar turnos por paciente" (te pedirá DNI):contentReference[oaicite:11]{index=11}
                 consultar_turno()
 
 # Main
 if __name__ == "__main__":
     menu_inicio()
+
