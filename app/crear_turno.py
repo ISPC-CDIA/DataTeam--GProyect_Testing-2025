@@ -2,20 +2,12 @@ from conectar_base_datos import conectar_base_datos
 from tabulate import tabulate
 
 def _elegir_por_id(rows, etiqueta, headers):
-    """
-    Muestra una tabla [ID, Nombre] y pide SOLO el ID exacto.
-    0 o 'q' -> cancelar/volver.
-    Devuelve (id_elegido, nombre_elegido) o (None, None) si se cancela.
-    """
     if not rows:
         print(f"No hay {etiqueta}s disponibles.")
         return None, None
-
     print(tabulate(rows, headers=headers, tablefmt="grid"))
-
     ids_validos = {r[0] for r in rows}
     nombres_por_id = {r[0]: r[1] for r in rows}
-
     while True:
         val = input(f"Ingrese el ID de {etiqueta} (0 para volver): ").strip().lower()
         if val in ("0", "q"):
@@ -26,13 +18,21 @@ def _elegir_por_id(rows, etiqueta, headers):
                 return _id, nombres_por_id[_id]
         print("ID inválido. Ingrese un ID que exista en la tabla (o 0 para volver).")
 
-def crear_turno():
+def crear_turno(user):
+    # Bloquear médicos para crear turnos
+    if user.get("es_medico"):
+        print("⛔ Los médicos no pueden crear turnos.")
+        return
+
+    # (Opcional) si NO querés que admin cree turnos:
+    if user.get("es_admin"):
+        print("⛔ El admin gestiona usuarios; no crea turnos.")
+        return
+
     conn = conectar_base_datos()
-    cursor = conn.cursor(buffered=True)  # evita "commands out of sync"
+    cursor = conn.cursor(buffered=True)
 
-    # 1) Elegir DEPARTAMENTO
     print('Para CREAR un turno, seleccione un DEPARTAMENTO médico:\n')
-
     cursor.execute("""
         SELECT id_departamento, Nombre
         FROM Departamento
@@ -45,18 +45,14 @@ def crear_turno():
         return
 
     id_departamento, nombre_departamento = _elegir_por_id(
-        departamentos,
-        etiqueta="Departamento",
-        headers=["ID", "Departamento"]
+        departamentos, etiqueta="Departamento", headers=["ID", "Departamento"]
     )
     if id_departamento is None:
         conn.close()
         return
 
-    # 2) Elegir ESPECIALIDAD (FK directa en Especialidad)
     print(f"\nDepartamento elegido: {nombre_departamento}")
     print("Ahora seleccione una ESPECIALIDAD disponible en este departamento:\n")
-
     cursor.execute("""
         SELECT id_especialidad, Nombre
         FROM Especialidad
@@ -70,23 +66,31 @@ def crear_turno():
         return
 
     id_especialidad, nombre_especialidad = _elegir_por_id(
-        especialidades,
-        etiqueta="Especialidad",
-        headers=["ID", "Especialidad"]
+        especialidades, etiqueta="Especialidad", headers=["ID", "Especialidad"]
     )
     if id_especialidad is None:
         conn.close()
         return
 
-    # 3) Datos del paciente
+    # --- Datos del paciente ---
     print()
     user_m = input('Ingrese Nombre del paciente: ').strip()
     user_a = input('Ingrese Apellido del paciente: ').strip()
     user_dni = input('Ingrese DNI del paciente: ').strip()
 
+    # Si es PACIENTE, chequeo simple para evitar que cree turnos a otro DNI (soft check):
+    if not (user.get("es_empleado") or user.get("es_admin")):
+        # Si tenés user["dni"], compará contra ese. Si no, permití pero avisá:
+        dni_usuario = user.get("dni")  # solo si tu login guarda el DNI
+        if dni_usuario and dni_usuario != user_dni:
+            print("⛔ No puede crear turnos para otro DNI.")
+            conn.close()
+            return
+        # Si no hay dni en user, lo dejamos pasar (TP simple), pero podrías guardarlo al crear Paciente.
+
+    # Upsert Paciente
     cursor.execute('SELECT id_paciente FROM Paciente WHERE DNI = %s;', (user_dni,))
     row = cursor.fetchone()
-
     if row is None:
         cursor.execute(
             'INSERT INTO Paciente (Nombre, Apellido, DNI) VALUES (%s, %s, %s);',
@@ -97,7 +101,7 @@ def crear_turno():
     else:
         tdni = row[0]
 
-    # 4) Crear turno
+    # Crear turno
     cursor.execute("""
         INSERT INTO Turno (fecha, hora, Paciente_id_paciente, Especialidad_id_especialidad)
         VALUES (CURDATE(), CURTIME(), %s, %s);
@@ -107,13 +111,12 @@ def crear_turno():
     conn.commit()
     conn.close()
 
-    # 5) Confirmación
     print(f"\n✅ Turno creado correctamente.")
     print(f"Departamento: {nombre_departamento}")
     print(f"Especialidad: {nombre_especialidad}")
     if id_turno:
         print(f"Código de turno: {id_turno}")
-    print('Recibirá un Email con la confirmación del horario (a implementar).')
+
 
 
 

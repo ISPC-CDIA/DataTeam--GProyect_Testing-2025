@@ -20,6 +20,11 @@ SELECT 'paciente_abdala', 'mario.abdala@demo.local', 'paciente123', 28740858, r.
 FROM Rol r WHERE r.nombre='paciente'
 ON DUPLICATE KEY UPDATE email=VALUES(email), password_hash='paciente123';
 
+INSERT INTO Usuario (username, email, password_hash, dni, id_rol)
+SELECT 'empleado_maia', 'empleado@demo.local', 'empleado123', NULL, r.id_rol
+FROM Rol r WHERE r.nombre='empleado'
+ON DUPLICATE KEY UPDATE email=VALUES(email), password_hash='empleado123';
+
 -- Departamentos
 INSERT INTO Turnero.Departamento (nombre) VALUES ('Medicina'); -- 1
 INSERT INTO Turnero.Departamento (nombre) VALUES ('Diagnóstico por Imágenes'); -- 2
