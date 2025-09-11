@@ -9,6 +9,8 @@ DataTeam--GProyect_Testing-2025/
 │   ├── eliminar_turno.py
 │   ├── consultar_turnos_medico.py
 │   ├── conectar_base_datos.py
+│   ├── crear_usuario.py
+│   ├── admin_usuarios.py
 │   └── auth.py
 │
 │

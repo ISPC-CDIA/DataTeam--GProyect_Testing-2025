@@ -3,9 +3,9 @@ from eliminar_turno import eliminar_turno
 from actualizar_turno import actualizar_turno
 from consultar_turnos_medico import consultar_turnos_medico
 from crear_usuario import crear_usuario
+from admin_usuarios import ver_usuarios, cambiar_rol_usuario, eliminar_usuario
 from auth import login
 import consultar_turno as consultar_turno_mod
-
 
 def menu_inicio():
     print('- Bienvenido al Sistema de Gestión de Turnos -')
@@ -32,10 +32,10 @@ def menu_inicio():
         print("\nSeleccione una opción:")
 
         if user.get("es_admin"):
-            # Admin: solo gestiona usuarios
+            # Admin: gestiona usuarios
             print('1. Crear Usuario')
             print('2. Ver Usuarios')
-            print('3. Cambiar Permisos de Usuario')
+            print('3. Cambiar Rol de Usuario')
             print('4. Eliminar Usuario')
             print('0. Salir')
             opciones_validas = {0,1,2,3,4}
@@ -56,7 +56,7 @@ def menu_inicio():
             opciones_validas = {0,1}
 
         else:
-            # Paciente: CRUD solo de SUS turnos
+            # Paciente: CRUD de SUS turnos
             print('1. Crear MI Turno')
             print('2. Consultar MIS Turnos')
             print('3. Actualizar MI Turno')
@@ -67,7 +67,7 @@ def menu_inicio():
         # leer opción
         while True:
             try:
-                opt = int(input("> "))
+                opt = int(input("> ").strip())
                 if opt in opciones_validas:
                     break
                 else:
@@ -83,11 +83,11 @@ def menu_inicio():
             elif opt == 1:
                 crear_usuario()
             elif opt == 2:
-                print("Listado de usuarios: (TODO)")
+                ver_usuarios()
             elif opt == 3:
-                print("Cambiar permisos: (TODO)")
+                cambiar_rol_usuario()
             elif opt == 4:
-                print("Eliminar usuario: (TODO)")
+                eliminar_usuario()
             input("\nENTER para volver al menú...")
 
         elif user.get("es_empleado"):
@@ -95,13 +95,13 @@ def menu_inicio():
                 print('Hasta luego, gracias por confiar en InstaTurno.')
                 break
             elif opt == 1:
-                crear_turno(user)  # empleado crea turnos
+                crear_turno(user)
             elif opt == 2:
                 consultar_turno_mod.consultar_turno(user)
             elif opt == 3:
-                actualizar_turno(user)  # asegurar que valide permisos en la función
+                actualizar_turno(user)
             elif opt == 4:
-                eliminar_turno(user)    # asegurar que valide permisos en la función
+                eliminar_turno(user)
             input("\nENTER para volver al menú...")
 
         elif user.get("es_medico"):
@@ -118,13 +118,13 @@ def menu_inicio():
                 print('Hasta luego, gracias por confiar en InstaTurno.')
                 break
             elif opt == 1:
-                crear_turno(user)  # paciente crea SU turno
+                crear_turno(user)  # crea SU turno
             elif opt == 2:
                 consultar_turno_mod.consultar_turno(user)  # debe filtrar por su DNI/usuario
             elif opt == 3:
-                actualizar_turno(user)  # debe permitir solo turnos propios
+                actualizar_turno(user)  # solo turnos propios (validado en la función)
             elif opt == 4:
-                eliminar_turno(user)    # debe permitir solo turnos propios
+                eliminar_turno(user)    # solo turnos propios (validado en la función)
             input("\nENTER para volver al menú...")
 
 # Main
