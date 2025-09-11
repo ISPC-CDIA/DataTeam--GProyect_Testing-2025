@@ -48,7 +48,7 @@ def actualizar_turno(user):
         return
 
     id_turno, nombre_paciente, dni_turno, especialidad_turno, id_paciente_turno = turno
-    print(f"El turno seleccionado corresponde al paciente {nombre_paciente} (DNI {dni_turno}), para el área de {especialidad_turno}")
+    print(f"El turno seleccionado corresponde al paciente {nombre_paciente} (DNI {dni_turno}), para la especialiad de {especialidad_turno}")
 
     # --- Si es PACIENTE, confirmar que el turno es suyo ---
     if es_paciente:
@@ -62,13 +62,13 @@ def actualizar_turno(user):
     if es_empleado:
         print("¿Qué desea modificar?")
         print('1. Paciente')
-        print('2. Área')
+        print('2. Especialidad')
         print('0. Salir')
         opciones_validas = {0,1,2}
     else:
-        # Paciente: solo puede cambiar Área
+        # Paciente: solo puede cambiar Especialidad
         print("¿Qué desea modificar?")
-        print('2. Área')
+        print('2. Especialidad')
         print('0. Salir')
         opciones_validas = {0,2}
 
@@ -112,7 +112,7 @@ def actualizar_turno(user):
             conn.commit()
             print('✅ Se ha actualizado el turno (paciente creado y asignado).')
 
-    # --- Opción 2: cambiar Área (EMPLEADO o PACIENTE) ---
+    # --- Opción 2: cambiar Especialidad (EMPLEADO o PACIENTE) ---
     elif opcion == 2:
         # Listar especialidades ordenadas por Nombre (puede ser por ID si preferís)
         cursor.execute('SELECT id_especialidad, Nombre FROM Especialidad ORDER BY Nombre ASC;')
@@ -123,7 +123,7 @@ def actualizar_turno(user):
             conn.close()
             return
 
-        print("Seleccione una nueva Área:")
+        print("Seleccione una nueva Especialidad:")
         for idx, esp in enumerate(especialidades, start=1):
             print(f'{idx}. {esp[1]}')
 
@@ -147,9 +147,9 @@ def actualizar_turno(user):
                 (especialidad[0], c)
             )
             conn.commit()
-            print(f'✅ El área ha sido actualizada a {nueva_area_nombre}')
+            print(f'✅ La especialidad ha sido actualizada a {nueva_area_nombre}')
         else:
-            print(f'No se encontró el área {nueva_area_nombre}')
+            print(f'No se encontró la especialidad {nueva_area_nombre}')
 
     elif opcion == 0:
         print("Adiós.")
